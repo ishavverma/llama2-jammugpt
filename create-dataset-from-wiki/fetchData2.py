@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import csv
 
 # Set your OpenAI GPT API key
-openai.api_key = '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'
+openai.api_key = 'sk-9kcVtbTdKXzQwpLMDsbishavT3BlbkFJhjGN0WWUHUwmUeDiV7y3'
 
 def get_wikipedia_links(keyword):
     base_url = "https://en.wikipedia.org/w/api.php"
@@ -39,7 +39,7 @@ def generate_summary(text):
     # Use OpenAI GPT to generate a summary
     prompt = f"Summarize the following text:\n{text}"
     response = openai.Completion.create(
-        engine="text-davinci-003",
+        engine="davinci-002",
         prompt=prompt,
         max_tokens=150
     )
