@@ -20,10 +20,11 @@ def get_wikipedia_links(keyword):
         # Parse the JSON response
         data = response.json()
 
-        # Extract page titles from the search results
-        titles = [result['title'] for result in data['query']['search']]
+        # Extract page names and links from the search results
+        pages = [{'name': result['title'], 'link': f"https://en.wikipedia.org/wiki/{result['title']}"}
+                 for result in data['query']['search']]
 
-        return titles
+        return pages
     else:
         print(f"Error: Unable to fetch Wikipedia search results. Status code: {response.status_code}")
         return []
@@ -34,8 +35,9 @@ if __name__ == "__main__":
 
     if search_results:
         print("Wikipedia pages containing the keyword:")
-        for title in search_results:
-            print(title)
+        for page in search_results:
+            print(f"Name: {page['name']}")
+            print(f"Link: {page['link']}")
+            print()
     else:
         print("No relevant Wikipedia pages found.")
-
