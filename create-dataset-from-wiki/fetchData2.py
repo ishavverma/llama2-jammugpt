@@ -1,5 +1,10 @@
+import openai
 import requests
+from bs4 import BeautifulSoup
 import csv
+
+# Set your OpenAI GPT API key
+openai.api_key = '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'
 
 def get_wikipedia_links(keyword):
     base_url = "https://en.wikipedia.org/w/api.php"
@@ -30,9 +35,21 @@ def get_wikipedia_links(keyword):
         print(f"Error: Unable to fetch Wikipedia search results. Status code: {response.status_code}")
         return []
 
+def generate_summary(text):
+    # Use OpenAI GPT to generate a summary
+    prompt = f"Summarize the following text:\n{text}"
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=150
+    )
+
+    summary = response['choices'][0]['text'].strip()
+    return summary
+
 def append_to_csv(data, csv_file_path):
     with open(csv_file_path, mode='a', encoding='utf-8', newline='') as csv_file:
-        fieldnames = ['Name', 'Link']
+        fieldnames = ['Name', 'Link', 'Text', 'Summary']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
         # Check if the file is empty, and write header if needed
@@ -40,8 +57,27 @@ def append_to_csv(data, csv_file_path):
             writer.writeheader()
 
         for page in data:
-            writer.writerow({'Name': page['name'], 'Link': page['link']})
+            text = extract_page_text(page['link'])
+            summary = generate_summary(text)
+            writer.writerow({'Name': page['name'], 'Link': page['link'], 'Text': text, 'Summary': summary})
             print(f"Appended to CSV: {page['name']}")
+
+def extract_page_text(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        page_soup = BeautifulSoup(response.text, 'html.parser')
+        content = page_soup.find('div', {'class': 'mw-parser-output'})
+        if content:
+            # Extract text from paragraphs
+            paragraphs = content.find_all('p')
+            text_content = '\n'.join([paragraph.get_text() for paragraph in paragraphs])
+            return text_content
+        else:
+            print(f"Error: No content found on the Wikipedia page.")
+            return None
+    else:
+        print(f"Error: Unable to fetch Wikipedia page. Status code: {response.status_code}")
+        return None
 
 if __name__ == "__main__":
     keyword = "Jammu"
