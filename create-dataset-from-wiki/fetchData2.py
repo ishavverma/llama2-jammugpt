@@ -1,4 +1,5 @@
 import requests
+import csv
 
 def get_wikipedia_links(keyword):
     base_url = "https://en.wikipedia.org/w/api.php"
@@ -29,15 +30,25 @@ def get_wikipedia_links(keyword):
         print(f"Error: Unable to fetch Wikipedia search results. Status code: {response.status_code}")
         return []
 
+def append_to_csv(data, csv_file_path):
+    with open(csv_file_path, mode='a', encoding='utf-8', newline='') as csv_file:
+        fieldnames = ['Name', 'Link']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        # Check if the file is empty, and write header if needed
+        if csv_file.tell() == 0:
+            writer.writeheader()
+
+        for page in data:
+            writer.writerow({'Name': page['name'], 'Link': page['link']})
+            print(f"Appended to CSV: {page['name']}")
+
 if __name__ == "__main__":
     keyword = "Jammu"
     search_results = get_wikipedia_links(keyword)
 
     if search_results:
-        print("Wikipedia pages containing the keyword:")
-        for page in search_results:
-            print(f"Name: {page['name']}")
-            print(f"Link: {page['link']}")
-            print()
+        csv_file_path = "wikipedia_data.csv"
+        append_to_csv(search_results, csv_file_path)
     else:
         print("No relevant Wikipedia pages found.")
